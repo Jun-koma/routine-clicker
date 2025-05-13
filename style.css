@@ -1,0 +1,145 @@
+body {
+    font-family: sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+h1, h2 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+#videoPlayer {
+    width: 100%;
+    max-width: 600px;
+    margin-top: 10px;
+    border: 1px solid #ddd;
+}
+
+.video-section, .controls-section, .timestamps-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.controls-section:last-child, .timestamps-section:last-child {
+    border-bottom: none;
+}
+
+
+#numberButtons button {
+    padding: 10px 15px;
+    margin: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    background-color: #e7e7e7;
+    border-radius: 4px;
+}
+
+#numberButtons button:hover {
+    background-color: #d7d7d7;
+}
+
+.timestamp-entry {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.timestamp-entry span {
+    font-weight: bold;
+    margin-right: 10px;
+    flex-basis: 200px; /* Ensure consistent width for time and number */
+}
+
+.timestamp-entry .reason-input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-width: 200px; /* Minimum width for reason input */
+}
+
+.timestamp-entry .save-reason-btn {
+    padding: 8px 12px;
+    cursor: pointer;
+    background-color: #5cb85c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+}
+
+.timestamp-entry .save-reason-btn:hover {
+    background-color: #4cae4c;
+}
+
+.timestamp-entry .reason-saved {
+    font-style: italic;
+    color: green;
+    margin-left: 10px;
+}
+
+/* style.css の末尾などに追加 */
+#resetTimestampsBtn {
+    background-color: #f44336; /* 少し目立つように赤系の色にしました */
+    color: white;
+    padding: 8px 15px;
+    margin-bottom: 15px; /* リストとの間に少し余白 */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#resetTimestampsBtn:hover {
+    background-color: #d32f2f;
+}
+
+/* style.css の末尾などに追加 */
+.realtime-display-area {
+    font-size: 3em; /* 数字を大きく表示 */
+    font-weight: bold;
+    color: #e74c3c; /* 少し目立つ色 */
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    min-height: 60px; /* 表示エリアの最低限の高さを確保 */
+    line-height: 60px; /* 数字を上下中央に配置しやすくするため */
+    border: 2px solid #f0f0f0;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+/* style.css の末尾などに追加 */
+.sum-display-area {
+    font-size: 1.8em; /* 少し小さめに */
+    font-weight: bold;
+    color: #2980b9; /* 青系の色にしました */
+    text-align: center;
+    margin-top: 8px;
+    padding: 5px;
+    min-height: 40px;
+    line-height: 40px;
+    border: 1px solid #ddd;
+    background-color: #fdfdfd;
+    border-radius: 4px;
+}

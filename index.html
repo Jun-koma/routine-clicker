@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>動画タイムスタンプアプリ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>動画タイムスタンプアプリ</h1>
+
+        <div class="video-source-section">
+            <h2>1. 動画ソースを選択</h2>
+            <div class="source-option">
+                <h4>ローカルファイル:</h4>
+                <input type="file" id="videoUpload" accept="video/*">
+            </div>
+            <hr>
+            <div class="source-option">
+                <h4>YouTube URL:</h4>
+                <input type="text" id="youtubeUrlInput" placeholder="例: https://www.youtube.com/watch?v=XXXXXXXXXXX">
+                <button id="loadYouTubeVideoBtn">URLから読み込む</button>
+            </div>
+        </div>
+        <div id="videoPlayerWrapper">
+            <video id="videoPlayer" controls width="600" style="display: block; margin-bottom: 10px;"></video>
+            <div id="youtubePlayerContainer" style="display: none; width: 600px; height: 360px; margin-bottom: 10px;"></div>
+        </div>
+        <div id="realtimeDisplay" class="realtime-display-area"></div>
+        <div id="sumDisplay" class="sum-display-area">合計: 0</div>
+
+        <div class="controls-section">
+            <h2>2. タイムスタンプを追加 (1-6)</h2>
+            <p>動画の再生中に数字ボタンを押すと、その時点の時間と数字が記録されます。</p>
+            <div id="numberButtons">
+                <button class="numBtn" data-value="1">1</button>
+                <button class="numBtn" data-value="2">2</button>
+                <button class="numBtn" data-value="3">3</button>
+                <button class="numBtn" data-value="4">4</button>
+                <button class="numBtn" data-value="5">5</button>
+                <button class="numBtn" data-value="6">6</button>
+            </div>
+        </div>
+
+        <div class="timestamps-section">
+            <h2>3. タイムスタンプと理由</h2>
+            <button id="resetTimestampsBtn">タイムスタンプをリセット</button>
+            <div id="timestampsList">
+                <p>ここに記録されたタイムスタンプが表示されます。</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    </body>
+</html>
