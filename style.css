@@ -18,12 +18,12 @@ body {
 
 h1, h2 {
     color: #333;
-    margin-top: 0; /* 上部マージン調整 */
-    margin-bottom: 15px; /* 下部マージン調整 */
+    margin-top: 0;
+    margin-bottom: 15px;
 }
 
 h1 {
-    text-align: center; /* 中央揃え */
+    text-align: center;
     margin-bottom: 25px;
 }
 
@@ -40,28 +40,25 @@ h1 {
     border-bottom: none;
 }
 
-/* 動画プレーヤーのラッパー */
 #videoPlayerWrapper {
     width: 100%;
-    max-width: 600px; /* PCでの最大幅 */
-    margin: 20px auto; /* 上下左右中央に配置 */
+    max-width: 600px;
+    margin: 20px auto;
 }
 
-/* 動画プレーヤー共通スタイル */
 #videoPlayer,
 #youtubePlayerContainer {
-    width: 100%; /* 親要素の幅に追従 */
+    width: 100%;
     height: auto;
-    aspect-ratio: 16 / 9; /* アスペクト比を維持 */
-    background-color: #000; /* 読み込み中の背景など */
+    aspect-ratio: 16 / 9;
+    background-color: #000;
     border: 1px solid #ddd;
-    border-radius: 4px; /* 角丸 */
-    margin-bottom: 10px; /* videoPlayer には HTML側で指定があるので #youtubePlayerContainerにも合わせる */
+    border-radius: 4px;
+    margin-bottom: 10px;
 }
 
-/* YouTubeプレーヤーのiframe自体もレスポンシブにする */
 #youtubePlayerContainer {
-    position: relative; /* iframe の position:absolute のため */
+    position: relative;
 }
 
 #youtubePlayerContainer iframe {
@@ -70,11 +67,9 @@ h1 {
     left: 0;
     width: 100%;
     height: 100%;
-    border-radius: 4px; /* コンテナに合わせて角丸 */
+    border-radius: 4px;
 }
 
-
-/* 入力要素のスタイル調整 */
 .source-option {
     margin-bottom: 15px;
 }
@@ -105,17 +100,41 @@ h1 {
     background-color: #d7d7d7;
 }
 
+/* モード選択UIのスタイル */
+#modeSelection {
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #f0f0f0; /* 少し色を変更 */
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+}
+#modeSelection h4 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 1em; /* h2よりは小さく */
+    font-weight: bold;
+}
+#modeSelection label {
+    margin-right: 15px;
+    cursor: pointer;
+    font-size: 0.95em;
+}
+#modeSelection input[type="radio"] {
+    margin-right: 5px;
+    vertical-align: middle; /* ラベルとラジオボタンの縦位置を合わせる */
+}
+
 
 #numberButtons {
     display: flex;
-    flex-wrap: wrap; /* ボタンを折り返す */
-    justify-content: space-around; /* ボタン間のスペースを均等に */
+    flex-wrap: wrap;
+    justify-content: space-around;
     margin-top: 10px;
 }
 
-#numberButtons button {
-    flex-basis: calc(16.666% - 10px); /* 6ボタン均等配置を試みる (マージン考慮) */
-    min-width: 50px; /* タップしやすい最小幅 */
+#numberButtons button.numBtn { /* クラス名を明示 */
+    flex-basis: calc(16.666% - 10px);
+    min-width: 50px;
     padding: 10px 15px;
     margin: 5px;
     font-size: 16px;
@@ -123,11 +142,21 @@ h1 {
     border: 1px solid #ddd;
     background-color: #e7e7e7;
     border-radius: 4px;
+    transition: background-color 0.2s ease; /* ホバー効果を滑らかに */
 }
 
-#numberButtons button:hover {
+#numberButtons button.numBtn:hover {
     background-color: #d7d7d7;
 }
+
+/* Yo-yo mode 用のボタンスタイル（オプション） */
+/*
+#numberButtons.yoyo-mode button.numBtn {
+    flex-basis: calc(50% - 10px); // 2ボタンなら広めに
+    font-size: 1.2em; // 少し大きく
+    padding: 15px 20px;
+}
+*/
 
 .timestamp-entry {
     background-color: #f9f9f9;
@@ -141,19 +170,19 @@ h1 {
     gap: 10px;
 }
 
-.timestamp-entry span:first-child { /* 時間と記録された数字 */
+.timestamp-entry span:first-child {
     font-weight: bold;
     margin-right: 10px;
-    flex-basis: 220px; /* PC表示時の基準幅 */
-    flex-shrink: 0; /* 縮まないように */
+    flex-basis: 220px;
+    flex-shrink: 0;
 }
 
 .timestamp-entry .reason-input {
-    flex-grow: 1; /* 残りのスペースを埋める */
+    flex-grow: 1;
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    min-width: 150px; /* PC表示時の最小幅 */
+    min-width: 150px;
 }
 
 .timestamp-entry .save-reason-btn {
@@ -163,7 +192,7 @@ h1 {
     color: white;
     border: none;
     border-radius: 4px;
-    white-space: nowrap; /* 保存ボタンのテキストが改行しないように */
+    white-space: nowrap;
 }
 
 .timestamp-entry .save-reason-btn:hover {
@@ -180,12 +209,12 @@ h1 {
 #resetTimestampsBtn {
     background-color: #f44336;
     color: white;
-    padding: 10px 15px; /* 少し大きく */
+    padding: 10px 15px;
     margin-bottom: 15px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 1em; /* bodyのフォントサイズに相対的に */
+    font-size: 1em;
 }
 
 #resetTimestampsBtn:hover {
@@ -204,7 +233,7 @@ h1 {
     border: 2px solid #f0f0f0;
     background-color: #f9f9f9;
     border-radius: 4px;
-    word-break: break-all; /* 長い理由が表示される場合に備えて */
+    word-break: break-all;
 }
 
 .sum-display-area {
@@ -213,8 +242,8 @@ h1 {
     color: #2980b9;
     text-align: center;
     margin-top: 10px;
-    margin-bottom: 20px; /* 下部マージン調整 */
-    padding: 8px; /* パディング調整 */
+    margin-bottom: 20px;
+    padding: 8px;
     min-height: 40px;
     line-height: 40px;
     border: 1px solid #ddd;
@@ -222,18 +251,17 @@ h1 {
     border-radius: 4px;
 }
 
-/* スマートフォン向けのスタイル調整 */
 @media (max-width: 768px) {
     body {
         padding: 10px;
-        font-size: 14px; /* スマートフォンでの基本フォントサイズ */
+        font-size: 14px;
     }
     .container {
         padding: 15px;
     }
 
     h1 {
-        font-size: 1.8em; /* 見出しを少し小さく */
+        font-size: 1.8em;
         margin-bottom: 20px;
     }
     h2 {
@@ -241,30 +269,35 @@ h1 {
         margin-bottom: 10px;
     }
 
-    /* 数字ボタンの調整 */
-    #numberButtons button {
-        flex-basis: calc(33.333% - 10px); /* 3列表示 */
-        font-size: 1em; /* bodyのフォントサイズ基準 */
+    #numberButtons button.numBtn { /* クラス名 .numBtn を明示 */
+        flex-basis: calc(33.333% - 10px);
+        font-size: 1em;
         padding: 12px 8px;
     }
+    /* yo-yo mode 時のメディアクエリ調整例 */
+    /*
+    #numberButtons.yoyo-mode button.numBtn {
+        flex-basis: calc(50% - 10px);
+    }
+    */
 
-    /* タイムスタンプリストの項目を縦積みに */
+
     .timestamp-entry {
         flex-direction: column;
-        align-items: stretch; /* 各要素が横幅いっぱいに広がるように */
-        gap: 8px; /* 要素間の隙間を少し縮める */
+        align-items: stretch;
+        gap: 8px;
     }
     .timestamp-entry span:first-child,
     .timestamp-entry .reason-input,
     .timestamp-entry .save-reason-btn,
     .timestamp-entry .reason-saved {
         width: 100%;
-        margin-right: 0; /* 不要なマージンをリセット */
-        flex-basis: auto; /* flex-basisをリセット */
-        min-width: 0; /* min-widthをリセット */
+        margin-right: 0;
+        flex-basis: auto;
+        min-width: 0;
     }
     .timestamp-entry .reason-saved {
-        text-align: right; /* 保存しましたメッセージを右寄せに */
+        text-align: right;
         margin-left: 0;
     }
 
@@ -280,19 +313,25 @@ h1 {
     }
 
     .controls-section p,
-    #timestampsList > p { /* 「ここに記録されたタイムスタンプが〜」の部分 */
+    #timestampsList > p {
         font-size: 0.95em;
     }
 }
 
-@media (max-width: 480px) { /* さらに小さい画面向けの調整 */
+@media (max-width: 480px) {
     h1 { font-size: 1.5em; }
     h2 { font-size: 1.2em; }
 
-    #numberButtons button {
-        flex-basis: calc(50% - 10px); /* 2列表示 */
-        padding: 10px;
+    #numberButtons.koma-mode button.numBtn { /* koma-mode クラスを付けた場合の適用 */
+         flex-basis: calc(33.333% - 8px); /* 3列維持、マージン少し減らす */
+         padding: 10px 5px;
     }
+    #numberButtons.yoyo-mode button.numBtn { /* yoyo-mode クラスを付けた場合の適用 */
+        flex-basis: calc(50% - 8px); /* 2列表示 */
+        padding: 12px 10px; /* 少し大きめに */
+        font-size: 1.1em;
+    }
+
 
     .realtime-display-area {
         font-size: 1.8em;

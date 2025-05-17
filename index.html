@@ -24,9 +24,8 @@
             </div>
         </div>
 
-        <div id="videoPlayerWrapper"> {/* 動画プレーヤーのラッパー */}
+        <div id="videoPlayerWrapper">
             <video id="videoPlayer" controls style="display: block;"></video>
-            {/* YouTubeプレーヤーのコンテナ。インラインのwidthとheightを削除 */}
             <div id="youtubePlayerContainer" style="display: none; margin-bottom: 10px;"></div>
         </div>
 
@@ -34,15 +33,21 @@
         <div id="sumDisplay" class="sum-display-area">合計: 0</div>
 
         <div class="controls-section">
-            <h2>2. タイムスタンプを追加 (1-6)</h2>
-            <p>動画の再生中に数字ボタンを押すと、その時点の時間と数字が記録されます。</p>
+            <h2>2. タイムスタンプを追加</h2>
+            
+            <div id="modeSelection">
+                <h4>入力モード選択:</h4>
+                <label>
+                    <input type="radio" name="inputMode" value="koma" checked> Koma Mode (1-6)
+                </label>
+                <label>
+                    <input type="radio" name="inputMode" value="yoyo"> Yo-yo Mode (+1/-1)
+                </label>
+            </div>
+
+            <p>動画の再生中に数字ボタンを押すか、対応するキーを押すと、その時点の時間と数字が記録されます。</p>
             <div id="numberButtons">
-                <button class="numBtn" data-value="1">1</button>
-                <button class="numBtn" data-value="2">2</button>
-                <button class="numBtn" data-value="3">3</button>
-                <button class="numBtn" data-value="4">4</button>
-                <button class="numBtn" data-value="5">5</button>
-                <button class="numBtn" data-value="6">6</button>
+                {/* ボタンはJavaScriptで動的に生成されます */}
             </div>
         </div>
 

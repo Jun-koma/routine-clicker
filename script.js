@@ -1,34 +1,28 @@
 // YouTube Iframe APIを非同期で読み込む
 var tag = document.createElement('script');
-tag.src = "https://www.youtube.com/iframe_api"; // 標準のAPI URLを使用
+tag.src = "https://www.youtube.com/iframe_api";
 var firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-var ytPlayer; // YouTubeプレーヤーのインスタンスを保持するグローバル変数
-var currentActivePlayer = 'local'; // 'local' または 'youtube'
+var ytPlayer;
+var currentActivePlayer = 'local';
 
-// APIの準備ができたら呼ばれる関数 (グローバルに定義する必要あり)
 function onYouTubeIframeAPIReady() {
     console.log("YouTube Iframe API is ready.");
-    // この時点ではプレーヤーはまだ作成しない。ボタンクリック時に作成する。
 }
 
-// プレーヤーの準備ができたら呼ばれるコールバック (YT.Playerのイベント)
 function onPlayerReady(event) {
     console.log("YouTube Player is ready (onPlayerReady).");
-    // event.target.playVideo(); // 必要なら自動再生
 }
 
-// プレーヤーの状態が変わったら呼ばれるコールバック (YT.Playerのイベント)
-var ytPlayerState = -1; // YT.PlayerState.UNSTARTED
-function onPlayerStateChange(event) {
+var ytPlayerState = -1;
+function onPlayerStateChange(event) { // このグローバル関数はDOMContentLoaded内のラッパーから呼ばれる
     ytPlayerState = event.data;
-    console.log("YouTube Player state changed: ", ytPlayerState);
-    // ここで再生終了(YT.PlayerState.ENDED)などを検知して、
-    // 既存のリアルタイム表示クリアなどの処理を呼び出す必要がある
+    console.log("YouTube Player state changed (original global): ", ytPlayerState);
     if (ytPlayerState === YT.PlayerState.ENDED) {
-        if (realtimeDisplayDiv) realtimeDisplayDiv.textContent = '';
-        if (typeof currentlyDisplayedTimestampId !== 'undefined') currentlyDisplayedTimestampId = null;
+        // DOMContentLoaded内のhandleVideoEndedで処理するため、ここでは重複を避ける
+        // if (realtimeDisplayDiv) realtimeDisplayDiv.textContent = ''; // DOMContentLoaded内のhandleVideoEndedで処理
+        // if (typeof window.currentlyDisplayedTimestampId !== 'undefined') window.currentlyDisplayedTimestampId = null; // 同上
     }
 }
 
@@ -44,11 +38,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetTimestampsBtn = document.getElementById('resetTimestampsBtn');
     const realtimeDisplayDiv = document.getElementById('realtimeDisplay');
     const sumDisplayDiv = document.getElementById('sumDisplay');
+    const modeSelectionRadios = document.querySelectorAll('input[name="inputMode"]');
 
     let timestampsData = [];
     let realtimeDisplayTimeoutId = null;
-    // `currentlyDisplayedTimestampId` はグローバルスコープの onPlayerStateChange からも参照されるため window オブジェクト経由でアクセス
     window.currentlyDisplayedTimestampId = null;
+    let currentInputMode = 'koma'; // 'koma' or 'yoyo', 初期値はHTMLのcheckedと合わせる
 
     function formatTime(totalSeconds) {
         const flooredSeconds = Math.floor(totalSeconds);
@@ -65,6 +60,51 @@ document.addEventListener('DOMContentLoaded', () => {
         return minutes * 60 + seconds;
     }
 
+    function updateInputButtons() {
+        if (!numberButtonsContainer) return;
+        numberButtonsContainer.innerHTML = ''; // 既存のボタンをクリア
+
+        // モードに応じてクラスをコンテナに設定 (CSSでのスタイル分け用)
+        if (currentInputMode === 'yoyo') {
+            numberButtonsContainer.classList.add('yoyo-mode');
+            numberButtonsContainer.classList.remove('koma-mode');
+        } else {
+            numberButtonsContainer.classList.add('koma-mode');
+            numberButtonsContainer.classList.remove('yoyo-mode');
+        }
+
+        if (currentInputMode === 'koma') {
+            for (let i = 1; i <= 6; i++) {
+                const button = document.createElement('button');
+                button.className = 'numBtn';
+                button.dataset.value = String(i);
+                button.textContent = String(i);
+                numberButtonsContainer.appendChild(button);
+            }
+        } else if (currentInputMode === 'yoyo') {
+            const plusOneButton = document.createElement('button');
+            plusOneButton.className = 'numBtn';
+            plusOneButton.dataset.value = '+1';
+            plusOneButton.textContent = '+1';
+            numberButtonsContainer.appendChild(plusOneButton);
+
+            const minusOneButton = document.createElement('button');
+            minusOneButton.className = 'numBtn';
+            minusOneButton.dataset.value = '-1';
+            minusOneButton.textContent = '-1';
+            numberButtonsContainer.appendChild(minusOneButton);
+        }
+    }
+
+    modeSelectionRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            currentInputMode = this.value;
+            updateInputButtons(); // モード変更時にボタンを再描画
+            console.log(`入力モードが ${currentInputMode} に変更されました。`);
+        });
+    });
+
+
     function showLocalPlayer() {
         localVideoPlayerElement.style.display = 'block';
         youtubePlayerContainerDiv.style.display = 'none';
@@ -72,7 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ytPlayer.stopVideo();
         }
         currentActivePlayer = 'local';
-        console.log('Switched to Local Player');
     }
 
     function showYouTubePlayer() {
@@ -80,7 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
         localVideoPlayerElement.pause();
         youtubePlayerContainerDiv.style.display = 'block';
         currentActivePlayer = 'youtube';
-        console.log('Switched to YouTube Player');
     }
     
     videoUpload.addEventListener('change', function(event) {
@@ -93,7 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 const fileURL = URL.createObjectURL(file);
                 localVideoPlayerElement.src = fileURL;
-                console.log('ローカル動画ファイルが選択されました:', file.name);
                 
                 clearTimeout(realtimeDisplayTimeoutId);
                 if (realtimeDisplayDiv) realtimeDisplayDiv.textContent = '';
@@ -102,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (typeof calculateAndDisplaySum === 'function') calculateAndDisplaySum(); 
                 if (typeof renderTimestampsList === 'function') renderTimestampsList();
             } catch (e) {
-                console.error('ローカル動画ファイルのURL生成中にエラーが発生しました:', e);
+                console.error('ローカル動画ファイルのURL生成中にエラー:', e);
                 alert('ローカル動画ファイルの読み込み中にエラーが発生しました。');
             }
         }
@@ -116,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const videoId = extractYouTubeVideoId(url);
         if (!videoId) {
-            alert('有効なYouTube動画のURLではないようです。正しいURLを入力してください。\n例: https://www.youtube.com/watch?v=XXXXXXXXXXX'); // このURL例は標準的なものに変更を推奨
+            alert('有効なYouTube動画のURLではないようです。正しいURLを入力してください。\n例: youtube.com/watch?v=');
             return;
         }
 
@@ -124,18 +161,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (ytPlayer && typeof ytPlayer.destroy === 'function') {
             ytPlayer.destroy();
+            ytPlayer = null; // 参照をクリア
         }
 
-        // YouTube Playerのサイズ指定を削除し、CSSで制御するようにする
         ytPlayer = new YT.Player('youtubePlayerContainer', {
-            // height と width の指定を削除
             videoId: videoId,
-            playerVars: {
-                'playsinline': 1
-            },
+            playerVars: { 'playsinline': 1 },
             events: {
-                'onReady': window.onPlayerReady, // グローバル関数を明示的に指定
-                'onStateChange': window.onPlayerStateChange // グローバル関数を明示的に指定
+                'onReady': window.onPlayerReady,
+                'onStateChange': window.onPlayerStateChange // DOMContentLoaded内で拡張されたものを参照
             }
         });
         
@@ -145,30 +179,26 @@ document.addEventListener('DOMContentLoaded', () => {
         timestampsData = []; 
         if (typeof calculateAndDisplaySum === 'function') calculateAndDisplaySum(); 
         if (typeof renderTimestampsList === 'function') renderTimestampsList();
-        console.log(`YouTube video ID ${videoId} の読み込みを試みます。`);
     });
 
     function extractYouTubeVideoId(url) {
         let videoId = null;
-        try {
-            const urlObj = new URL(url);
-            // 注意: 'googleusercontent.com' を含むURLの判定は、標準的なYouTube URLとは異なる特殊なケースです。
-            // 一般的なYouTube URL (youtube.com, youtu.be) の対応を優先すべきです。
-            if (urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') {
-                videoId = urlObj.searchParams.get('v');
-            } else if (urlObj.hostname === 'youtu.be') {
-                videoId = urlObj.pathname.substring(1);
-            }
-        } catch (e) {
-            // new URL() で失敗した場合や、上記条件に合致しない場合、正規表現で試みる
-            console.warn("URL parsing failed for initial check, trying regex:", e);
-        }
-
-        if (!videoId) { // 上記で videoId が取得できなかった場合にのみ正規表現を実行
-            const regexStandard = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-            const match = url.match(regexStandard);
-            if (match && match[1]) {
-                videoId = match[1];
+        // 標準的なYouTube URLのパターン (youtube.com, youtu.be, 短縮URLなど)
+        const regexStandard = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+        const match = url.match(regexStandard);
+        if (match && match[1]) {
+            videoId = match[1];
+        } else {
+            // フォールバックとして、以前のコードにあった特殊な googleusercontent.com 形式の解析を試みる (ただし非推奨)
+            try {
+                const urlObj = new URL(url);
+                if ((urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') && urlObj.searchParams.has('v')) {
+                     videoId = urlObj.searchParams.get('v');
+                } else if (urlObj.hostname === 'youtu.be' && urlObj.pathname.length > 1) {
+                     videoId = urlObj.pathname.substring(1);
+                }
+            } catch (e) {
+                console.warn("URL parsing failed for special googleusercontent.com format:", e);
             }
         }
         return videoId;
@@ -177,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function calculateAndDisplaySum() {
         let sum = 0;
         for (const entry of timestampsData) {
-            const num = parseInt(entry.number, 10);
+            const num = parseInt(entry.number, 10); // "+1"や"-1"も正しくパースされる
             if (!isNaN(num)) { sum += num; }
         }
         if (sumDisplayDiv) sumDisplayDiv.textContent = `合計: ${sum}`;
@@ -191,7 +221,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             currentTime = localVideoPlayerElement.currentTime;
         } else if (currentActivePlayer === 'youtube' && ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
-            if (ytPlayer.getPlayerState() === YT.PlayerState.UNSTARTED || ytPlayer.getDuration() === 0 ) {
+            const state = ytPlayer.getPlayerState();
+            if (state === YT.PlayerState.UNSTARTED || state === -1 /* UNSTARTEDと同義のことがある */ || ytPlayer.getDuration() === 0 ) {
                  alert('YouTube動画が再生可能な状態ではありません。'); return;
             }
             currentTime = ytPlayer.getCurrentTime();
@@ -202,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const newTimestamp = {
             id: Date.now(),
             time: formatTime(currentTime),
-            number: selectedNumberString,
+            number: selectedNumberString, // "+1", "-1", "1", "2" など文字列として記録
             reason: ''
         };
         timestampsData.push(newTimestamp);
@@ -213,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (numberButtonsContainer) {
         numberButtonsContainer.addEventListener('click', function(event) {
-            if (event.target.classList.contains('numBtn')) {
+            if (event.target.classList.contains('numBtn') && event.target.dataset.value) {
                 addTimestamp(event.target.dataset.value);
             }
         });
@@ -222,20 +253,24 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', function(event) {
         const targetTagName = event.target.tagName.toLowerCase();
         if (targetTagName === 'input' || targetTagName === 'textarea') {
-            return; // 入力フィールドにフォーカスがある場合は何もしない
+            return;
         }
-        const numpadKeys = {'Numpad1':'1','Numpad2':'2','Numpad3':'3','Numpad4':'4','Numpad5':'5','Numpad6':'6'};
-        const numpadNumber = numpadKeys[event.code];
-        if (numpadNumber) {
-            addTimestamp(numpadNumber);
-            event.preventDefault(); // デフォルト動作（あれば）を抑制
-            return; 
+
+        if (currentInputMode === 'koma') {
+            const numpadKeys = {'Numpad1':'1','Numpad2':'2','Numpad3':'3','Numpad4':'4','Numpad5':'5','Numpad6':'6'};
+            const numpadNumber = numpadKeys[event.code];
+            if (numpadNumber) {
+                addTimestamp(numpadNumber);
+                event.preventDefault();
+                return;
+            }
         }
+        
         if (event.key === 'p' || event.key === 'P') {
-            addTimestamp("1");
+            addTimestamp(currentInputMode === 'yoyo' ? "+1" : "1");
             event.preventDefault();
         } else if (event.key === 'o' || event.key === 'O') {
-            addTimestamp("-1");
+            addTimestamp("-1"); // "-1"は両モード共通
             event.preventDefault();
         }
     });
@@ -270,18 +305,153 @@ document.addEventListener('DOMContentLoaded', () => {
         clearInterval(youtubeTimeUpdateInterval);
     }
     
-    // onPlayerStateChange はグローバルなので、DOMContentLoaded外の定義を参照・拡張する
-    // または、最初からDOMContentLoaded内で全てのロジックを定義し、windowに割り当てる
-    // ここでは、グローバル関数を拡張する形でwindow.onPlayerStateChangeを上書き定義
-    const originalOnPlayerStateChange = window.onPlayerStateChange; // 元の関数を保持
+    // グローバルスコープの onPlayerStateChange をここで拡張・上書き
+    const originalGlobalOnPlayerStateChange = window.onPlayerStateChange; // 元のグローバル関数があれば保持
     window.onPlayerStateChange = function(event) {
-        if (typeof originalOnPlayerStateChange === 'function') {
-            originalOnPlayerStateChange(event); // 元の処理を呼び出す
+        // 元の onPlayerStateChange (もしあれば) のロジックを呼び出す
+        if (typeof originalGlobalOnPlayerStateChange === 'function' && originalGlobalOnPlayerStateChange !== window.onPlayerStateChange) {
+             // 無限ループを避けるため、現在の関数自身でないことを確認
+            originalGlobalOnPlayerStateChange(event);
+        } else {
+            // DOMContentLoaded より前に定義された onPlayerStateChange のコアなロジックをここに含めるか、
+            // ytPlayerState の更新のみを行う。
+            // ytPlayerState = event.data; // この行はグローバル側の onPlayerStateChange に任せるか、ここで一元管理
         }
-        // 追加の処理
-        ytPlayerState = event.data; // ytPlayerStateを更新
+        // DOMContentLoaded 内で追加するロジック
+        ytPlayerState = event.data; // 再度代入して最新状態を保証
         console.log("YouTube Player state changed (DOMContentLoaded wrapper): ", ytPlayerState);
+
         if (ytPlayerState === YT.PlayerState.PLAYING) {
             startYouTubeTimeUpdate();
         } else if (ytPlayerState === YT.PlayerState.PAUSED || ytPlayerState === YT.PlayerState.ENDED || ytPlayerState === YT.PlayerState.CUED) {
             stopYouTubeTimeUpdate();
+        }
+        if (ytPlayerState === YT.PlayerState.ENDED) {
+            handleVideoEnded();
+        }
+    };
+    // onPlayerReady もグローバル関数なので、そのままwindow経由でYT APIに渡る
+    // window.onPlayerReady = onPlayerReady; // これは既にグローバルなので明示的な再代入は不要な場合が多い
+
+    function handleTimeUpdate() {
+        let currentTime;
+        let duration;
+        let isSeeking = false;
+
+        if (currentActivePlayer === 'local') {
+            if (!localVideoPlayerElement.src || isNaN(localVideoPlayerElement.duration)) return;
+            currentTime = localVideoPlayerElement.currentTime;
+            duration = localVideoPlayerElement.duration;
+            isSeeking = localVideoPlayerElement.seeking;
+        } else if (currentActivePlayer === 'youtube' && ytPlayer && typeof ytPlayer.getCurrentTime === 'function' && typeof ytPlayer.getDuration === 'function') {
+            if (ytPlayer.getPlayerState() === YT.PlayerState.UNSTARTED || isNaN(ytPlayer.getDuration()) || ytPlayer.getDuration() === 0) return;
+            currentTime = ytPlayer.getCurrentTime();
+            duration = ytPlayer.getDuration();
+        } else {
+            return;
+        }
+
+        if (timestampsData.length === 0 || isNaN(duration) || isSeeking) {
+            return;
+        }
+
+        let activeEntry = null;
+        for (const entry of timestampsData) {
+            const timestampTimeInSeconds = parseTime(entry.time);
+            if (currentTime >= timestampTimeInSeconds && currentTime < timestampTimeInSeconds + 1.0) {
+                activeEntry = entry;
+                break; 
+            }
+            if (currentTime < timestampTimeInSeconds) {
+                break;
+            }
+        }
+        if (activeEntry) {
+            if (window.currentlyDisplayedTimestampId !== activeEntry.id) {
+                clearTimeout(realtimeDisplayTimeoutId);
+                let displayText = `記録内容: ${activeEntry.number}`;
+                if (activeEntry.reason && activeEntry.reason.trim() !== '') {
+                    displayText += ` - 理由: ${activeEntry.reason}`;
+                }
+                if (realtimeDisplayDiv) realtimeDisplayDiv.textContent = displayText;
+                window.currentlyDisplayedTimestampId = activeEntry.id;
+                realtimeDisplayTimeoutId = setTimeout(() => {
+                    if (window.currentlyDisplayedTimestampId === activeEntry.id) {
+                        if (realtimeDisplayDiv) realtimeDisplayDiv.textContent = '';
+                        window.currentlyDisplayedTimestampId = null;
+                    }
+                }, 700);
+            }
+        }
+    }
+
+    function handleVideoEnded() {
+        clearTimeout(realtimeDisplayTimeoutId);
+        if (realtimeDisplayDiv) realtimeDisplayDiv.textContent = '';
+        window.currentlyDisplayedTimestampId = null;
+        if (currentActivePlayer === 'youtube') {
+            stopYouTubeTimeUpdate();
+        }
+    }
+
+    if (localVideoPlayerElement) {
+        localVideoPlayerElement.addEventListener('timeupdate', handleTimeUpdate);
+        localVideoPlayerElement.addEventListener('ended', handleVideoEnded);
+    }
+    
+    function renderTimestampsList() {
+        if (!timestampsListDiv) return;
+        timestampsListDiv.innerHTML = '';
+        if (timestampsData.length === 0) {
+            timestampsListDiv.innerHTML = '<p>ここに記録されたタイムスタンプが表示されます。</p>';
+            return;
+        }
+        const ul = document.createElement('ul');
+        ul.style.listStyleType = 'none'; ul.style.padding = '0';
+        timestampsData.forEach(entry => {
+            const li = document.createElement('li');
+            li.className = 'timestamp-entry'; li.dataset.id = entry.id;
+            const timeDisplay = document.createElement('span');
+            timeDisplay.textContent = `時間: ${entry.time} - 記録された数字: ${entry.number}`;
+            const reasonInput = document.createElement('input');
+            reasonInput.type = 'text'; reasonInput.className = 'reason-input';
+            reasonInput.placeholder = '理由を入力...'; reasonInput.value = entry.reason;
+            reasonInput.dataset.inputId = entry.id;
+            const saveButton = document.createElement('button');
+            saveButton.className = 'save-reason-btn'; saveButton.textContent = '理由を保存';
+            saveButton.dataset.buttonId = entry.id;
+            const savedStatus = document.createElement('span');
+            savedStatus.className = 'reason-saved'; savedStatus.dataset.statusId = entry.id;
+            li.appendChild(timeDisplay); li.appendChild(reasonInput);
+            li.appendChild(saveButton); li.appendChild(savedStatus);
+            ul.appendChild(li);
+        });
+        timestampsListDiv.appendChild(ul);
+    }
+
+    if (timestampsListDiv) {
+        timestampsListDiv.addEventListener('click', function(event) {
+            if (event.target.classList.contains('save-reason-btn')) {
+                const entryId = Number(event.target.dataset.buttonId);
+                const reasonInput = timestampsListDiv.querySelector(`.reason-input[data-input-id='${entryId}']`);
+                if (!reasonInput) return;
+                const reason = reasonInput.value.trim();
+                const dataEntry = timestampsData.find(d => d.id === entryId);
+                if (dataEntry) {
+                    dataEntry.reason = reason;
+                    const savedStatus = timestampsListDiv.querySelector(`.reason-saved[data-status-id='${entryId}']`);
+                    if (savedStatus) {
+                        savedStatus.textContent = '理由を保存しました！';
+                        setTimeout(() => { savedStatus.textContent = ''; }, 3000);
+                    }
+                }
+            }
+        });
+    }
+
+    // 初期表示処理
+    updateInputButtons(); // ★★★ 追加: 初期モードのボタンを描画
+    renderTimestampsList();
+    calculateAndDisplaySum();
+    console.log('初期化完了、入力モード切り替え対応済み。');
+});
