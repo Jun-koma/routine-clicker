@@ -16,14 +16,10 @@ function onPlayerReady(event) {
 }
 
 var ytPlayerState = -1;
-function onPlayerStateChange(event) { // このグローバル関数はDOMContentLoaded内のラッパーから呼ばれる
+function onPlayerStateChange(event) {
     ytPlayerState = event.data;
     console.log("YouTube Player state changed (original global): ", ytPlayerState);
-    if (ytPlayerState === YT.PlayerState.ENDED) {
-        // DOMContentLoaded内のhandleVideoEndedで処理するため、ここでは重複を避ける
-        // if (realtimeDisplayDiv) realtimeDisplayDiv.textContent = ''; // DOMContentLoaded内のhandleVideoEndedで処理
-        // if (typeof window.currentlyDisplayedTimestampId !== 'undefined') window.currentlyDisplayedTimestampId = null; // 同上
-    }
+    // 再生終了時の処理はDOMContentLoaded内のラッパーにあるhandleVideoEndedで行う
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -43,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let timestampsData = [];
     let realtimeDisplayTimeoutId = null;
     window.currentlyDisplayedTimestampId = null;
-    let currentInputMode = 'koma'; // 'koma' or 'yoyo', 初期値はHTMLのcheckedと合わせる
+    let currentInputMode = 'koma'; // 初期値はHTMLのcheckedと合わせる
 
     function formatTime(totalSeconds) {
         const flooredSeconds = Math.floor(totalSeconds);
@@ -62,18 +58,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateInputButtons() {
         if (!numberButtonsContainer) return;
-        numberButtonsContainer.innerHTML = ''; // 既存のボタンをクリア
+        numberButtonsContainer.innerHTML = ''; 
 
-        // モードに応じてクラスをコンテナに設定 (CSSでのスタイル分け用)
         if (currentInputMode === 'yoyo') {
             numberButtonsContainer.classList.add('yoyo-mode');
             numberButtonsContainer.classList.remove('koma-mode');
-        } else {
+
+            // Yo-yo mode: 左に「-1」、右に「+1」
+            const minusOneButton = document.createElement('button');
+            minusOneButton.className = 'numBtn';
+            minusOneButton.dataset.value = '-1';
+            minusOneButton.textContent = '-1';
+            numberButtonsContainer.appendChild(minusOneButton);
+
+            const plusOneButton = document.createElement('button');
+            plusOneButton.className = 'numBtn';
+            plusOneButton.dataset.value = '+1';
+            plusOneButton.textContent = '+1';
+            numberButtonsContainer.appendChild(plusOneButton);
+
+        } else { // koma mode (default)
             numberButtonsContainer.classList.add('koma-mode');
             numberButtonsContainer.classList.remove('yoyo-mode');
-        }
-
-        if (currentInputMode === 'koma') {
             for (let i = 1; i <= 6; i++) {
                 const button = document.createElement('button');
                 button.className = 'numBtn';
@@ -81,25 +87,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 button.textContent = String(i);
                 numberButtonsContainer.appendChild(button);
             }
-        } else if (currentInputMode === 'yoyo') {
-            const plusOneButton = document.createElement('button');
-            plusOneButton.className = 'numBtn';
-            plusOneButton.dataset.value = '+1';
-            plusOneButton.textContent = '+1';
-            numberButtonsContainer.appendChild(plusOneButton);
-
-            const minusOneButton = document.createElement('button');
-            minusOneButton.className = 'numBtn';
-            minusOneButton.dataset.value = '-1';
-            minusOneButton.textContent = '-1';
-            numberButtonsContainer.appendChild(minusOneButton);
         }
     }
 
     modeSelectionRadios.forEach(radio => {
         radio.addEventListener('change', function() {
             currentInputMode = this.value;
-            updateInputButtons(); // モード変更時にボタンを再描画
+            updateInputButtons();
             console.log(`入力モードが ${currentInputMode} に変更されました。`);
         });
     });
@@ -161,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (ytPlayer && typeof ytPlayer.destroy === 'function') {
             ytPlayer.destroy();
-            ytPlayer = null; // 参照をクリア
+            ytPlayer = null;
         }
 
         ytPlayer = new YT.Player('youtubePlayerContainer', {
@@ -169,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
             playerVars: { 'playsinline': 1 },
             events: {
                 'onReady': window.onPlayerReady,
-                'onStateChange': window.onPlayerStateChange // DOMContentLoaded内で拡張されたものを参照
+                'onStateChange': window.onPlayerStateChange
             }
         });
         
@@ -183,13 +177,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function extractYouTubeVideoId(url) {
         let videoId = null;
-        // 標準的なYouTube URLのパターン (youtube.com, youtu.be, 短縮URLなど)
         const regexStandard = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
         const match = url.match(regexStandard);
         if (match && match[1]) {
             videoId = match[1];
         } else {
-            // フォールバックとして、以前のコードにあった特殊な googleusercontent.com 形式の解析を試みる (ただし非推奨)
             try {
                 const urlObj = new URL(url);
                 if ((urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') && urlObj.searchParams.has('v')) {
@@ -207,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function calculateAndDisplaySum() {
         let sum = 0;
         for (const entry of timestampsData) {
-            const num = parseInt(entry.number, 10); // "+1"や"-1"も正しくパースされる
+            const num = parseInt(entry.number, 10);
             if (!isNaN(num)) { sum += num; }
         }
         if (sumDisplayDiv) sumDisplayDiv.textContent = `合計: ${sum}`;
@@ -222,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentTime = localVideoPlayerElement.currentTime;
         } else if (currentActivePlayer === 'youtube' && ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
             const state = ytPlayer.getPlayerState();
-            if (state === YT.PlayerState.UNSTARTED || state === -1 /* UNSTARTEDと同義のことがある */ || ytPlayer.getDuration() === 0 ) {
+            if (state === YT.PlayerState.UNSTARTED || state === -1 || ytPlayer.getDuration() === 0 ) {
                  alert('YouTube動画が再生可能な状態ではありません。'); return;
             }
             currentTime = ytPlayer.getCurrentTime();
@@ -233,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const newTimestamp = {
             id: Date.now(),
             time: formatTime(currentTime),
-            number: selectedNumberString, // "+1", "-1", "1", "2" など文字列として記録
+            number: selectedNumberString,
             reason: ''
         };
         timestampsData.push(newTimestamp);
@@ -270,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
             addTimestamp(currentInputMode === 'yoyo' ? "+1" : "1");
             event.preventDefault();
         } else if (event.key === 'o' || event.key === 'O') {
-            addTimestamp("-1"); // "-1"は両モード共通
+            addTimestamp("-1");
             event.preventDefault();
         }
     });
@@ -305,20 +297,12 @@ document.addEventListener('DOMContentLoaded', () => {
         clearInterval(youtubeTimeUpdateInterval);
     }
     
-    // グローバルスコープの onPlayerStateChange をここで拡張・上書き
-    const originalGlobalOnPlayerStateChange = window.onPlayerStateChange; // 元のグローバル関数があれば保持
+    const originalGlobalOnPlayerStateChange = window.onPlayerStateChange;
     window.onPlayerStateChange = function(event) {
-        // 元の onPlayerStateChange (もしあれば) のロジックを呼び出す
         if (typeof originalGlobalOnPlayerStateChange === 'function' && originalGlobalOnPlayerStateChange !== window.onPlayerStateChange) {
-             // 無限ループを避けるため、現在の関数自身でないことを確認
             originalGlobalOnPlayerStateChange(event);
-        } else {
-            // DOMContentLoaded より前に定義された onPlayerStateChange のコアなロジックをここに含めるか、
-            // ytPlayerState の更新のみを行う。
-            // ytPlayerState = event.data; // この行はグローバル側の onPlayerStateChange に任せるか、ここで一元管理
         }
-        // DOMContentLoaded 内で追加するロジック
-        ytPlayerState = event.data; // 再度代入して最新状態を保証
+        ytPlayerState = event.data;
         console.log("YouTube Player state changed (DOMContentLoaded wrapper): ", ytPlayerState);
 
         if (ytPlayerState === YT.PlayerState.PLAYING) {
@@ -330,8 +314,6 @@ document.addEventListener('DOMContentLoaded', () => {
             handleVideoEnded();
         }
     };
-    // onPlayerReady もグローバル関数なので、そのままwindow経由でYT APIに渡る
-    // window.onPlayerReady = onPlayerReady; // これは既にグローバルなので明示的な再代入は不要な場合が多い
 
     function handleTimeUpdate() {
         let currentTime;
@@ -449,9 +431,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 初期表示処理
-    updateInputButtons(); // ★★★ 追加: 初期モードのボタンを描画
+    updateInputButtons();
     renderTimestampsList();
     calculateAndDisplaySum();
-    console.log('初期化完了、入力モード切り替え対応済み。');
+    console.log('初期化完了、新レイアウトおよびYo-yo modeボタン配置対応済み。');
 });
