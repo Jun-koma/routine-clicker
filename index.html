@@ -23,10 +23,13 @@
                 <button id="loadYouTubeVideoBtn">URLから読み込む</button>
             </div>
         </div>
-        <div id="videoPlayerWrapper">
-            <video id="videoPlayer" controls width="600" style="display: block; margin-bottom: 10px;"></video>
-            <div id="youtubePlayerContainer" style="display: none; width: 600px; height: 360px; margin-bottom: 10px;"></div>
+
+        <div id="videoPlayerWrapper"> {/* 動画プレーヤーのラッパー */}
+            <video id="videoPlayer" controls style="display: block;"></video>
+            {/* YouTubeプレーヤーのコンテナ。インラインのwidthとheightを削除 */}
+            <div id="youtubePlayerContainer" style="display: none; margin-bottom: 10px;"></div>
         </div>
+
         <div id="realtimeDisplay" class="realtime-display-area"></div>
         <div id="sumDisplay" class="sum-display-area">合計: 0</div>
 
@@ -53,5 +56,5 @@
     </div>
 
     <script src="script.js"></script>
-    </body>
+</body>
 </html>
