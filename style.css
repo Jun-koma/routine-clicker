@@ -5,7 +5,7 @@ body {
     padding: 20px;
     background-color: #f4f4f4;
     color: #333;
-    /* touch-action: manipulation; /* body全体に適用すると影響範囲が広すぎる可能性があるため、.containerに適用 */
+    touch-action: manipulation; /* ★★★ body全体でダブルタップズームを抑制 ★★★ */
 }
 
 .container {
@@ -15,7 +15,7 @@ body {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    touch-action: manipulation; /* ★★★ コンテナ全体でダブルタップズームを抑制 ★★★ */
+    /* touch-action: manipulation; /* bodyに移動したのでこちらは削除またはコメントアウト */
 }
 
 h1, h2 {
@@ -89,7 +89,7 @@ h1 {
     width: 100%;
     max-width: 600px;
     margin: 0 auto 15px auto;
-    touch-action: manipulation; /* 動画プレーヤー周りも明示的に指定 */
+    /* touch-action: manipulation; /* bodyに適用したので、重複を避けるなら削除 */
 }
 
 #videoPlayer,
@@ -161,7 +161,7 @@ h1 {
 }
 
 .timestamp-buttons-panel {
-    touch-action: manipulation; /* ボタン群の親にも適用 */
+    /* touch-action: manipulation; /* bodyに適用したので、重複を避けるなら削除 */
 }
 .timestamp-buttons-panel h2 {
     /* スタイルは共通 */
@@ -175,23 +175,22 @@ h1 {
 
 #numberButtons {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* Koma mode では wrap が必要 */
     margin-top: 10px;
 }
 #numberButtons.koma-mode {
     justify-content: space-around;
 }
 #numberButtons.yoyo-mode {
-    display: flex; /* ★★★ Flexboxを明示 ★★★ */
-    gap: 10px; /* ★★★ ボタン間の隙間を設定 ★★★ */
-    flex-wrap: nowrap; /* ★★★ Yo-yo modeでは折り返さない ★★★ */
-    /* justify-content: space-between;  gapを使う場合は不要なことが多い */
+    display: flex;
+    flex-direction: row;   /* ★★★ 横並びを明示 ★★★ */
+    flex-wrap: nowrap;     /* ★★★ 折り返さないことを明示 ★★★ */
+    gap: 10px;
 }
 
 #numberButtons button.numBtn {
-    min-width: 50px;
+    /* min-width: 50px; /* Yo-yo modeでは0にするため、モード別で設定 */
     padding: 10px 15px;
-    /* margin: 5px; /* gapで管理するため、モードによって調整 */
     font-size: 16px;
     cursor: pointer;
     border: 1px solid #ddd;
@@ -200,16 +199,19 @@ h1 {
     transition: background-color 0.2s ease;
     flex-grow: 0;
     flex-shrink: 0;
-    touch-action: manipulation; /* ダブルタップズーム抑制 */
+    touch-action: manipulation; /* ボタン自体にも設定（念のため） */
 }
 
 #numberButtons.koma-mode button.numBtn {
-    flex-basis: calc(16.666% - 10px); /* 6ボタン用 */
-    margin: 5px; /* Koma mode ではマージンを使用 */
+    flex-basis: calc(16.666% - 10px);
+    margin: 5px;
+    min-width: 50px; /* Koma modeでは最小幅を設定 */
 }
 #numberButtons.yoyo-mode button.numBtn {
-    flex: 1; /* ★★★ 利用可能なスペースを均等に分け合う ★★★ */
-    margin: 0; /* ★★★ gapで管理するため、マージンを0に ★★★ */
+    flex: 1;
+    margin: 0;
+    min-width: 0; /* ★★★ 既存のmin-widthの影響を排除 ★★★ */
+    text-align: center; /* ★★★ ボタン内テキストを中央揃え ★★★ */
 }
 
 #numberButtons button.numBtn:hover {
@@ -313,15 +315,14 @@ h1 {
     }
 
     #numberButtons.koma-mode button.numBtn {
-        flex-basis: calc(33.333% - 10px); /* マージン5pxを考慮 */
+        flex-basis: calc(33.333% - 10px);
         font-size: 1em;
         padding: 12px 8px;
     }
-    /* Yo-yo mode のボタンは flex:1 と gap で既にレスポンシブなので、特別な変更は不要な場合が多い */
-    /* 必要であればフォントサイズやパディングを調整 */
     #numberButtons.yoyo-mode button.numBtn {
-        font-size: 1.1em; /* 維持または調整 */
-        padding: 12px 10px; /* 維持または調整 */
+        /* flex:1, margin:0, min-width:0 は基本スタイルから継承 */
+        font-size: 1.1em; /* フォントサイズやパディングは適宜調整 */
+        padding: 12px 10px;
     }
 
     .timestamp-entry {
@@ -354,13 +355,13 @@ h1 {
     h2 { font-size: 1.2em; }
 
     #numberButtons.koma-mode button.numBtn {
-         flex-basis: calc(33.333% - 8px); /* マージンが少し減る想定なら */
+         flex-basis: calc(33.333% - 8px);
          padding: 10px 5px;
     }
-    /* Yo-yo mode のボタンは引き続き flex:1 と gap で動作 */
     #numberButtons.yoyo-mode button.numBtn {
-        font-size: 1em; /* フォントサイズ調整 */
-        padding: 10px 8px; /* パディング調整 */
+        /* flex:1, margin:0, min-width:0 は基本スタイルから継承 */
+        font-size: 1em;
+        padding: 10px 8px;
     }
 
     .realtime-display-area {
